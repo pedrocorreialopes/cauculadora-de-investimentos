@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tesouro Reserva · Simulador de evolução do investimento</title>
+  <meta name="description" content="Simule a evolução do Tesouro Reserva (100% da Taxa Selic): valor inicial, aportes mensais, rendimento mês a mês, custódia da B3 e Imposto de Renda regressivo." />
+  <meta name="theme-color" content="#070b14" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="js/calc.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#simulador">Ir para o simulador</a>
+
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="brand" href="#topo" aria-label="Tesouro Reserva, início">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8.5" />
+            <path d="M12 7.5v9M9.4 9.9h4a1.9 1.9 0 0 1 0 3.8h-3.2a1.9 1.9 0 0 0 0 3.8h4.2" />
+          </svg>
+        </span>
+        <span class="brand__text">
+          <strong>Tesouro Reserva</strong>
+          <small>Simulador de evolução</small>
+        </span>
+      </a>
+
+      <nav class="site-nav" aria-label="Navegação principal">
+        <a href="#simulador">Simulador</a>
+        <a href="#resultados">Resultado</a>
+        <a href="#metodologia">Metodologia</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="topo">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="shell hero__inner">
+        <p class="eyebrow">Renda fixa · Título público</p>
+        <h1>Quanto seu dinheiro rende no <span class="hl">Tesouro Reserva</span>?</h1>
+        <p class="hero__lead">
+          Informe o valor inicial, o aporte mensal e o prazo. Veja a evolução do saldo mês a mês,
+          o rendimento de cada mês sobre o montante da conta, a custódia da B3 e o
+          Imposto de Renda no resgate.
+        </p>
+        <ul class="badges" aria-label="Características do título">
+          <li class="badge badge--primary">100% da Taxa Selic</li>
+          <li class="badge">Liquidez diária</li>
+          <li class="badge">Aplicação mínima R$ 1,00</li>
+          <li class="badge">Sem marcação a mercado</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="shell workspace">
+      <!-- FORMULÁRIO -->
+      <section class="card card--form" id="simulador" aria-labelledby="titulo-form">
+        <div class="card__head">
+          <h2 id="titulo-form">Sua simulação</h2>
+          <p class="card__sub">Os valores podem ser alterados a qualquer momento.</p>
+        </div>
+
+        <form id="sim-form" novalidate>
+          <div class="field">
+            <label for="valor-inicial">Valor inicial</label>
+            <div class="input-money">
+              <span class="input-money__prefix" aria-hidden="true">R$</span>
+              <input
+                id="valor-inicial"
+                name="valorInicial"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                value="1.000,00"
+                aria-describedby="hint-inicial" />
+            </div>
+            <p class="hint" id="hint-inicial">Aplicação feita no início do primeiro mês.</p>
+          </div>
+
+          <div class="field">
+            <label for="aporte-mensal">Valor de cada parcela (aporte mensal)</label>
+            <div class="input-money">
+              <span class="input-money__prefix" aria-hidden="true">R$</span>
+              <input
+                id="aporte-mensal"
+                name="aporteMensal"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                value="300,00"
+                aria-describedby="hint-aporte" />
+            </div>
+            <p class="hint" id="hint-aporte">Depositado no início de cada mês. Use 0 para aporte único.</p>
+          </div>
+
+          <div class="field">
+            <label for="meses">Quantidade de meses</label>
+            <div class="input-unit">
+              <input id="meses" name="meses" type="number" min="1" max="600" step="1" value="24" inputmode="numeric" />
+              <span class="input-unit__suffix">meses</span>
+            </div>
+            <div class="chips" role="group" aria-label="Prazos rápidos">
+              <button type="button" class="chip" data-meses="12">1 ano</button>
+              <button type="button" class="chip" data-meses="24">2 anos</button>
+              <button type="button" class="chip" data-meses="60">5 anos</button>
+              <button type="button" class="chip" data-meses="120">10 anos</button>
+            </div>
+          </div>
+
+          <details class="advanced" id="avancado">
+            <summary>Parâmetros avançados</summary>
+            <div class="advanced__body">
+              <div class="field">
+                <label for="selic">Taxa Selic (% ao ano)</label>
+                <div class="input-unit">
+                  <input id="selic" name="selic" type="number" min="0" max="100" step="0.01" value="14.5" inputmode="decimal" />
+                  <span class="input-unit__suffix">% a.a.</span>
+                </div>
+                <p class="hint">Rendimento do título = 100% da Selic.</p>
+              </div>
+
+              <div class="field">
+                <label for="custodia">Taxa de custódia da B3 (% ao ano)</label>
+                <div class="input-unit">
+                  <input id="custodia" name="custodia" type="number" min="0" max="5" step="0.01" value="0.20" inputmode="decimal" />
+                  <span class="input-unit__suffix">% a.a.</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="isencao">Isenção de custódia (saldo até)</label>
+                <div class="input-money">
+                  <span class="input-money__prefix" aria-hidden="true">R$</span>
+                  <input id="isencao" name="isencao" type="text" inputmode="numeric" autocomplete="off" value="10.000,00" />
+                </div>
+                <p class="hint">A custódia incide apenas sobre o que excede este saldo.</p>
+              </div>
+            </div>
+          </details>
+
+          <div class="form-actions">
+            <button class="btn btn--primary" type="submit" id="btn-calcular">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 19V5m0 14h16M8 15l3.5-4 3 2.4L20 7.5" />
+              </svg>
+              Calcular evolução
+            </button>
+            <button class="btn btn--ghost" type="button" id="btn-limpar">Limpar</button>
+          </div>
+
+          <p class="form-error" id="form-erro" role="alert" hidden></p>
+        </form>
+
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <!-- RESULTADOS -->
+      <section class="results" id="resultados" aria-labelledby="titulo-resultados">
+        <div class="results__head">
+          <h2 id="titulo-resultados">Resultado</h2>
+          <p class="results__period" id="resumo-periodo">—</p>
+        </div>
+
+        <div class="kpis">
+          <article class="kpi kpi--highlight">
+            <p class="kpi__label">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8" /><path d="M15 7h6v6" /></svg>
+              Rendimento do último mês
+            </p>
+            <p class="kpi__value" id="kpi-rendimento">R$ 0,00</p>
+            <p class="kpi__meta" id="kpi-rendimento-meta">sobre o montante da conta</p>
+          </article>
+
+          <article class="kpi">
+            <p class="kpi__label">Saldo final bruto</p>
+            <p class="kpi__value" id="kpi-saldo">R$ 0,00</p>
+            <p class="kpi__meta" id="kpi-saldo-meta">ao final do período</p>
+          </article>
+
+          <article class="kpi">
+            <p class="kpi__label">Total investido</p>
+            <p class="kpi__value" id="kpi-investido">R$ 0,00</p>
+            <p class="kpi__meta" id="kpi-investido-meta">valor inicial + parcelas</p>
+          </article>
+
+          <article class="kpi">
+            <p class="kpi__label">Rendimento acumulado</p>
+            <p class="kpi__value kpi__value--accent" id="kpi-juros">R$ 0,00</p>
+            <p class="kpi__meta" id="kpi-juros-meta">já líquido de custódia</p>
+          </article>
+        </div>
+
+        <div class="stats" aria-label="Resumo de custos e impostos">
+          <div class="stat">
+            <span class="stat__label">Rendimento médio mensal</span>
+            <strong class="stat__value" id="stat-media">R$ 0,00</strong>
+          </div>
+          <div class="stat">
+            <span class="stat__label">Custódia B3 paga</span>
+            <strong class="stat__value" id="stat-custodia">R$ 0,00</strong>
+          </div>
+          <div class="stat">
+            <span class="stat__label">IR no resgate</span>
+            <strong class="stat__value" id="stat-ir">R$ 0,00</strong>
+            <span class="stat__note" id="stat-ir-aliquota">—</span>
+          </div>
+          <div class="stat">
+            <span class="stat__label">Saldo líquido no resgate</span>
+            <strong class="stat__value stat__value--strong" id="stat-liquido">R$ 0,00</strong>
+            <span class="stat__note" id="stat-liquido-nota">após IR e IOF</span>
+          </div>
+        </div>
+
+        <article class="card card--chart">
+          <div class="card__head card__head--row">
+            <div>
+              <h3>Evolução do patrimônio</h3>
+              <p class="card__sub">Saldo bruto x total investido, mês a mês.</p>
+            </div>
+            <ul class="legend" aria-hidden="true">
+              <li><span class="legend__dot legend__dot--saldo"></span>Saldo bruto</li>
+              <li><span class="legend__dot legend__dot--investido"></span>Investido</li>
+            </ul>
+          </div>
+          <div class="chart-box" id="chart-box">
+            <canvas id="grafico" aria-label="Gráfico da evolução do saldo do investimento" role="img"></canvas>
+          </div>
+          <p class="chart-fallback" id="chart-fallback" hidden>
+            Não foi possível carregar o gráfico. Os valores detalhados estão na tabela abaixo.
+          </p>
+        </article>
+
+        <article class="card card--table">
+          <div class="card__head card__head--row">
+            <div>
+              <h3>Rendimento mês a mês</h3>
+              <p class="card__sub" id="tabela-sub">Rendimento de cada mês sobre o montante da conta.</p>
+            </div>
+            <button class="btn btn--ghost btn--sm" type="button" id="btn-csv">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" />
+              </svg>
+              Exportar CSV
+            </button>
+          </div>
+
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Tabela de evolução mensal">
+            <table>
+              <caption class="sr-only">Evolução mensal do investimento no Tesouro Reserva</caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="num">Mês</th>
+                  <th scope="col" class="num">Aporte</th>
+                  <th scope="col" class="num th-key">Rendimento do mês</th>
+                  <th scope="col" class="num">% sobre o saldo</th>
+                  <th scope="col" class="num">Custódia B3</th>
+                  <th scope="col" class="num">Saldo bruto</th>
+                  <th scope="col" class="num">Rend. acumulado</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-corpo">
+                <tr class="empty-row"><td colspan="7">Preencha os dados e clique em “Calcular evolução”.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <!-- METODOLOGIA -->
+    <section class="method" id="metodologia" aria-labelledby="titulo-metodologia">
+      <div class="shell">
+        <p class="eyebrow">Como o cálculo funciona</p>
+        <h2 id="titulo-metodologia">As regras do Tesouro Reserva, aplicadas na simulação</h2>
+
+        <div class="method__grid">
+          <article class="method__card">
+            <h3>Rendimento</h3>
+            <p>
+              O título remunera <strong>100% da Taxa Selic</strong>. A taxa anual informada é convertida
+              em taxa mensal equivalente: <code>(1 + Selic)^(1/12) − 1</code>. Ex.: Selic de 14,50% a.a.
+              equivale a ≈ <strong>1,13% ao mês</strong>, aplicados sobre o montante da conta.
+            </p>
+          </article>
+
+          <article class="method__card">
+            <h3>Liquidez diária</h3>
+            <p>
+              O resgate pode ocorrer a qualquer dia, sem marcação a mercado: o valor resgatado é o saldo
+              acumulado, que nunca diminui por oscilação de preço. Por isso a projeção é feita em base
+              mensal composta, sem perdas de principal.
+            </p>
+          </article>
+
+          <article class="method__card">
+            <h3>Taxa de custódia da B3</h3>
+            <p>
+              <strong>0,20% ao ano</strong>, calculada por dia útil e debitada do saldo. Há isenção sobre os
+              primeiros <strong>R$ 10.000,00</strong>: a taxa incide apenas sobre o valor que excede esse
+              limite. Equivalentes mensais: ≈ 0,0167% sobre o excedente.
+            </p>
+          </article>
+
+          <article class="method__card">
+            <h3>Imposto de Renda</h3>
+            <p>
+              Tabela regressiva de renda fixa, cobrada somente no resgate e apenas sobre o rendimento:
+              <strong>22,5%</strong> até 180 dias, <strong>20%</strong> de 181 a 360,
+              <strong>17,5%</strong> de 361 a 720 e <strong>15%</strong> acima de 720 dias.
+              Cada aporte tem seu próprio prazo, então o simulador calcula a alíquota aporte por aporte.
+            </p>
+          </article>
+
+          <article class="method__card">
+            <h3>IOF</h3>
+            <p>
+              Incide apenas em resgates nos <strong>primeiros 30 dias</strong>, com alíquota regressiva de
+              96% (1º dia) até 0% (30º dia), sobre o rendimento. Como a simulação resgata ao final de meses
+              completos, o IOF é <strong>zero</strong> — mas o cálculo é aplicado quando o prazo é inferior a 30 dias.
+            </p>
+          </article>
+
+          <article class="method__card method__card--muted">
+            <h3>Premissas</h3>
+            <p>
+              Selic constante no período; aportes no início de cada mês (rendem o mês inteiro); taxa de
+              custódia e isenção fixas; IR estimado no resgate ao final do prazo. Valores aproximados, sem
+              feriados, IR sobre rendimento líquido de custódia. <strong>Não é recomendação de investimento.</strong>
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer__inner">
+      <p>Tesouro Reserva · simulador educacional de renda fixa.</p>
+      <p class="site-footer__note">
+        Projeção baseada na Selic informada. Rentabilidade passada não garante rentabilidade futura.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
